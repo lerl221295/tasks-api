@@ -17,19 +17,24 @@ const listener = target.createListener("tasks", { port: 80 }); // exposed port
 // To override that, pass in a VPC manually.
 const cluster = new awsx.ecs.Cluster("tasks-cluster");
 
-// Define the service using the cluster and the LB created
-const service = new awsx.ecs.FargateService("tasks", {
-    cluster, // if not sent, pulumi will know that a cluster is required, and it will create one for it
-    taskDefinitionArgs: {
-        containers: {
-            tasks: {
-                image,
-                memory: 512,
-                portMappings: [listener],
-            },
+//task definition using the Docker image built, and the LB created
+const taskDefinition = new awsx.ecs.FargateTaskDefinition("tasks-definition", {
+    containers: {
+        tasks: {
+            image,
+            memory: 512,
+            portMappings: [listener],
         },
     },
+})
+
+// Define the service using the cluster and the task definition
+const service = new awsx.ecs.FargateService("tasks", {
+    cluster, // if not sent, pulumi will know that a cluster is required, and it will create one for it
+    taskDefinition, // either this, or taskDefinitionArgs object to create the task definition here
 });
 
 // Export the URL so we can easily access it.
+
 export const frontendURL = pulumi.interpolate `http://${listener.endpoint.hostname}/`;
+export const taskDefinitionJson = taskDefinition.taskDefinition
