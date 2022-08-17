@@ -33,7 +33,7 @@ fun Route.taskRouting() {
             val task = call.receive<Task>()
             task.id = ++lastId
             taskStorage.add(task)
-            call.respond(HttpStatusCode.Created, SuccessResponse("Task created successfully"))
+            call.respond(HttpStatusCode.Created, task)
         }
 
         patch {
@@ -45,7 +45,7 @@ fun Route.taskRouting() {
                 description =  updateTaskData.description
                 priority = updateTaskData.priority
             }
-            call.respond(HttpStatusCode.OK, SuccessResponse("Task updated successfully"))
+            call.respond(HttpStatusCode.OK, task)
         }
 
         delete("{id?}") {
