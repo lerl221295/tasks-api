@@ -17,3 +17,12 @@ java -jar ./build/libs/tasks-all.jar
 docker build -t tasks .
 docker run -p 8080:8080 tasks
 ```
+
+## Trigger infrastructure update
+
+```bash
+cd infra
+export AWS_PROFILE=personal # if needed
+npm install
+pulumi up
+```
