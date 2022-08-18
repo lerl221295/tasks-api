@@ -4,7 +4,7 @@ import * as aws from "@pulumi/aws"
 
 // Create a container repository.
 const repo = new awsx.ecr.Repository("tasks-repo", {
-    repository: new aws.ecr.Repository("tasks-repo", { name: "tasks-repo" })
+    repository: new aws.ecr.Repository("tasks-repo", { name: "tasks-repo", forceDelete: true })
 });
 export const imageUri = pulumi.interpolate `${repo.repository.repositoryUrl}:latest`
 // if we want to build and push the image to the repository
