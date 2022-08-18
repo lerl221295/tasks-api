@@ -23,10 +23,12 @@ const cluster = new awsx.ecs.Cluster("tasks-cluster", { name: "tasks-cluster" })
 
 //task definition using the Docker image built, and the LB created
 const taskDefinition = new awsx.ecs.FargateTaskDefinition("tasks-definition", {
-    container: {
-        image: imageUri,
-        memory: 512,
-        portMappings: [listener],
+    containers: {
+        tasks: {
+            image: imageUri,
+            memory: 512,
+            portMappings: [listener],
+        }
     },
 })
 
