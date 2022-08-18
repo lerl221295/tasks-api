@@ -7,10 +7,10 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: tasks-repo-fb163e2
-  ECS_SERVICE: tasks-c8452a5
-  ECS_CLUSTER: tasks-cluster-9e575f3
-  ECS_TASK_DEFINITION: infra/taskDefinition.json
+  ECR_REPOSITORY: tasks-repo
+  ECS_SERVICE: tasks-service
+  ECS_CLUSTER: tasks-cluster
+  ECS_TASK_DEFINITION: taskDefinition.json
   CONTAINER_NAME: tasks
 
 permissions:
@@ -23,8 +23,6 @@ jobs:
 #    environment: production
 
     steps:
-#      - name: setup
-#        run:
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -34,6 +32,31 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - run: npm install
+        working-directory: infra
+
+      - name: Provide Infrastructure
+        uses: pulumi/actions@v3
+        id: infra
+        with:
+          command: up
+          stack-name: dev
+          work-dir: infra
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+      - name: Setup task definition
+        run:
+          aws ecs describe-task-definition --task-definition ${{ steps.infra.outputs.taskDefinitionArn }} > $ECS_TASK_DEFINITION
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
