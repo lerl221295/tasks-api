@@ -52,7 +52,8 @@ jobs:
 
       - name: Setup task definition
         run:
-          aws ecs describe-task-definition --task-definition ${{ steps.infra.outputs.taskDefinitionArn }} > $ECS_TASK_DEFINITION
+          aws ecs describe-task-definition --task-definition ${{ steps.infra.outputs.taskDefinitionArn }} --query taskDefinition > $ECS_TASK_DEFINITION
+          cat $ECS_TASK_DEFINITION
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
