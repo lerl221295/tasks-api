@@ -29,7 +29,7 @@ dependencies {
     implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.bkbn:kompendium-core:latest.release")
-    implementation("aws.sdk.kotlin:s3:0.16.0")
+    implementation("aws.sdk.kotlin:s3:0.17.5-beta")
     implementation("io.ktor:ktor-server-cors:$ktor_version")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
