@@ -62,9 +62,9 @@ fun Route.taskRouting() {
             }
         }
 
-        post("{id?}/image") {
-            val id = call.parameters["id"]?.toInt() ?: return@post call.respond(HttpStatusCode.BadRequest)
-            val task = taskStorage.find { it.id == id } ?: return@post call.respond(HttpStatusCode.NotFound, ErrorResponse("No task with id $id"))
+        put("{id?}/image") {
+            val id = call.parameters["id"]?.toInt() ?: return@put call.respond(HttpStatusCode.BadRequest)
+            val task = taskStorage.find { it.id == id } ?: return@put call.respond(HttpStatusCode.NotFound, ErrorResponse("No task with id $id"))
 
             val multipartData = call.receiveMultipart()
             val imageFormData = multipartData.readPart() as PartData.FileItem
