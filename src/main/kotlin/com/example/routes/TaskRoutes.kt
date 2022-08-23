@@ -1,10 +1,15 @@
 package com.example.routes
+
+import com.example.models.Task
+import com.example.models.lastId
+import com.example.models.taskStorage
+import com.example.services.uploadTaskImage
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import com.example.models.*
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -38,14 +43,14 @@ fun Route.taskRouting() {
 
         patch {
             val updateTaskData = call.receive<Task>()
-            val task = taskStorage.find { it.id == updateTaskData.id }
-                ?: return@patch call.respond(HttpStatusCode.NotFound, ErrorResponse("No task with id $updateTaskData.id"))
-            task.apply {
-                tittle = updateTaskData.tittle
-                description =  updateTaskData.description
-                priority = updateTaskData.priority
-            }
-            call.respond(HttpStatusCode.OK, task)
+            taskStorage.find { it.id == updateTaskData.id }?.let {
+                it.apply {
+                    tittle = updateTaskData.tittle
+                    description =  updateTaskData.description
+                    priority = updateTaskData.priority
+                }
+                call.respond(HttpStatusCode.OK, it)
+            } ?: call.respond(HttpStatusCode.NotFound, ErrorResponse("No task with id $updateTaskData.id"))
         }
 
         delete("{id?}") {
@@ -55,6 +60,21 @@ fun Route.taskRouting() {
             } else {
                 call.respond(HttpStatusCode.NotFound, ErrorResponse("No task with id $id"))
             }
+        }
+
+        put("{id?}/image") {
+            val id = call.parameters["id"]?.toInt() ?: return@put call.respond(HttpStatusCode.BadRequest)
+            val task = taskStorage.find { it.id == id } ?: return@put call.respond(HttpStatusCode.NotFound, ErrorResponse("No task with id $id"))
+
+            val multipartData = call.receiveMultipart()
+            val imageFormData = multipartData.readPart() as PartData.FileItem
+            val fileUrl = uploadTaskImage(id, imageFormData)
+
+            task.apply {
+                imageUrl = fileUrl
+            }
+
+            call.respond(HttpStatusCode.OK, SuccessResponse("Image saved successfully"))
         }
     }
 }
