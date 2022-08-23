@@ -13,7 +13,7 @@ export const imageUri = pulumi.interpolate `${repo.repository.repositoryUrl}:lat
 // Create a load balancer to listen for requests and route them to the container. The network LB will be created under the default VPC
 // If desired, a custom VPC can be created and used bellow to create the NLB
 const networkLoadBalancer = new awsx.lb.NetworkLoadBalancer("tasks", { external: true });
-const target = networkLoadBalancer.createTargetGroup("tasks", { port: 8080 }); // app port
+const target = networkLoadBalancer.createTargetGroup("tasks", { port: 8080, deregistrationDelay: 5 }); // app port
 const listener = target.createListener("tasks", { port: 80 }); // exposed port
 
 
