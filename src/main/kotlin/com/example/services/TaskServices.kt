@@ -7,7 +7,9 @@ import io.ktor.http.content.*
 
 suspend fun uploadTaskImage(taskId: Int, file: PartData.FileItem): String {
     val bucketName = "lerl221295-tasks-images" // TODO: get this from config (env)
-    val s3Client = S3Client.fromEnvironment()
+    val s3Client = S3Client.fromEnvironment() {
+        region = "us-east-1"
+    }
 
     val originalName = file.originalFileName ?: throw Exception("this is bad")
     val extension = originalName.substring(originalName.lastIndexOf(".") + 1)
