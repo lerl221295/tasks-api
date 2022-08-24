@@ -2,6 +2,7 @@ package com.example.services
 
 import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.PutObjectRequest
+import aws.sdk.kotlin.services.s3.model.S3Exception
 import aws.smithy.kotlin.runtime.content.ByteStream
 import io.ktor.http.content.*
 
@@ -23,9 +24,13 @@ suspend fun uploadTaskImage(taskId: Int, file: PartData.FileItem): String {
         contentType = "image/$extension"
     }
 
-    s3Client.use {
-        it.putObject(request)
+    try {
+        s3Client.use {
+            it.putObject(request)
+        }
+        return "https://$bucketName.s3.amazonaws.com/$fileName"
+    } catch (e: S3Exception) {
+        println("ERROR (S3Exception): " + e.sdkErrorMetadata.errorMessage)
+        throw e
     }
-
-    return "https://$bucketName.s3.amazonaws.com/$fileName"
 }
