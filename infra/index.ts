@@ -3,7 +3,6 @@ import * as awsx from "@pulumi/awsx";
 import * as aws from "@pulumi/aws"
 
 const config = new pulumi.Config();
-const bucketName = config.get("bucket-name")
 
 // Create a container repository.
 const repo = new awsx.ecr.Repository("tasks-repo", {
@@ -44,30 +43,7 @@ const service = new awsx.ecs.FargateService("tasks", {
     taskDefinition, // either this, or taskDefinitionArgs object to create the task definition here
 });
 
-const bucket = new aws.s3.Bucket("tasks-images", {
-    bucket: bucketName,
-    forceDestroy: true,
-    policy: {
-        Version: "2012-10-17",
-        Statement: [
-            {
-                Effect: "Allow",
-                Principal: "*",
-                Action: ["s3:GetObject"],
-                Resource: `arn:aws:s3:::${bucketName}/*` // policy refers to bucket name explicitly
-            },
-            {
-                Effect: "Allow",
-                Principal: {AWS: taskRole.arn},
-                Action: "s3:*Object",
-                Resource: `arn:aws:s3:::${bucketName}/*`
-            }
-        ]
-    }
-});
-
 
 // OUTPUT
 export const frontendURL = pulumi.interpolate `http://${listener.endpoint.hostname}/`;
 export const taskDefinitionArn = taskDefinition.taskDefinition.arn
-export const bucketDomainName = bucket.bucketDomainName
