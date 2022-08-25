@@ -1,3 +1,2 @@
 config:
   aws:region: us-east-1
-  tasks:bucket-name: lerl221295-tasks-images
