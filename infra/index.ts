@@ -2,6 +2,9 @@ import * as pulumi from "@pulumi/pulumi";
 import * as awsx from "@pulumi/awsx";
 import * as aws from "@pulumi/aws"
 
+const config = new pulumi.Config();
+const bucketName = config.get("bucket-name")
+
 // Create a container repository.
 const repo = new awsx.ecr.Repository("tasks-repo", {
     repository: new aws.ecr.Repository("tasks-repo", { name: "tasks-repo", forceDelete: true })
@@ -21,6 +24,7 @@ const listener = target.createListener("tasks", { port: 80 }); // exposed port
 // To override that, pass in a VPC manually.
 const cluster = new awsx.ecs.Cluster("tasks-cluster", { name: "tasks-cluster" });
 
+const taskRole = awsx.ecs.FargateTaskDefinition.createTaskRole("tasks-api-role") // IAM Role
 //task definition using the Docker image built, and the LB created
 const taskDefinition = new awsx.ecs.FargateTaskDefinition("tasks-definition", {
     containers: {
@@ -30,6 +34,7 @@ const taskDefinition = new awsx.ecs.FargateTaskDefinition("tasks-definition", {
             portMappings: [listener],
         }
     },
+    taskRole
 })
 
 // Define the service using the cluster and the task definition
@@ -39,18 +44,25 @@ const service = new awsx.ecs.FargateService("tasks", {
     taskDefinition, // either this, or taskDefinitionArgs object to create the task definition here
 });
 
-const bucketName = "lerl221295-tasks-images" // it has to be unique
 const bucket = new aws.s3.Bucket("tasks-images", {
     bucket: bucketName,
     forceDestroy: true,
     policy: {
         Version: "2012-10-17",
-        Statement: [{
-            Effect: "Allow",
-            Principal: "*",
-            Action: ["s3:GetObject"],
-            Resource: [`arn:aws:s3:::${bucketName}/*`] // policy refers to bucket name explicitly
-        }]
+        Statement: [
+            {
+                Effect: "Allow",
+                Principal: "*",
+                Action: ["s3:GetObject"],
+                Resource: `arn:aws:s3:::${bucketName}/*` // policy refers to bucket name explicitly
+            },
+            {
+                Effect: "Allow",
+                Principal: {AWS: taskRole.arn},
+                Action: "s3:*Object",
+                Resource: `arn:aws:s3:::${bucketName}/*`
+            }
+        ]
     }
 });
 
