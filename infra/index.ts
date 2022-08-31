@@ -3,7 +3,7 @@ import * as awsx from "@pulumi/awsx";
 import * as aws from "@pulumi/aws"
 
 const config = new pulumi.Config();
-
+const bucketName = config.get("bucket-name")
 // Create a container repository.
 const repo = new awsx.ecr.Repository("tasks-repo", {
     repository: new aws.ecr.Repository("tasks-repo", { name: "tasks-repo", forceDelete: true })
@@ -42,6 +42,29 @@ const service = new awsx.ecs.FargateService("tasks", {
     cluster, // if not sent, pulumi will know that a cluster is required, and it will create one for it
     taskDefinition, // either this, or taskDefinitionArgs object to create the task definition here
 });
+
+const bucket = new aws.s3.Bucket("tasks-images", {
+    bucket: bucketName,
+    forceDestroy: true,
+    policy: {
+        Version: "2012-10-17",
+        Statement: [
+            {
+                Effect: "Allow",
+                Principal: "*",
+                Action: "s3:GetObject",
+                Resource: `arn:aws:s3:::${bucketName}/*`
+            },
+            {
+                Effect: "Allow",
+                Principal: {AWS: taskRole.arn},
+                Action: "s3:*Object",
+                Resource: `arn:aws:s3:::${bucketName}/*`
+            }
+        ]
+    }
+})
+
 
 
 // OUTPUT
