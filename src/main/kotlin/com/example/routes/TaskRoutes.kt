@@ -3,9 +3,7 @@ package com.example.routes
 import com.example.models.Task
 import com.example.models.lastId
 import com.example.models.taskStorage
-import com.example.services.uploadTaskImage
 import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -60,25 +58,6 @@ fun Route.taskRouting() {
             } else {
                 call.respond(HttpStatusCode.NotFound, ErrorResponse("No task with id $id"))
             }
-        }
-
-        put("{id?}/image") {
-            val id = call.parameters["id"]?.toInt() ?: return@put call.respond(HttpStatusCode.BadRequest)
-            val task = taskStorage.find { it.id == id } ?: return@put call.respond(HttpStatusCode.NotFound)
-
-            val multipartData = call.receiveMultipart()
-            when (val imageFormData = multipartData.readPart()) {
-                is PartData.FileItem -> {
-                    val fileUrl = uploadTaskImage(id, imageFormData)
-                    task.apply {
-                        imageUrl = fileUrl
-                    }
-
-                    call.respond(HttpStatusCode.OK, SuccessResponse("Image saved successfully"))
-                }
-                else -> {}
-            }
-
         }
     }
 }
