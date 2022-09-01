@@ -2,7 +2,7 @@ package com.example.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Task(var id: Int, var tittle: String, var description: String, var priority: Int)
+data class Task(var id: Int, var tittle: String, var description: String, var priority: Int, var imageUrl: String? = null)
 
 var lastId = 0
 
